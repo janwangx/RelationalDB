@@ -1,7 +1,8 @@
 
 USE  classiscModels;
---drop table if exists tblOffice,tblEmployees ,tblCustomers, tblPayments,tblProductLines,tblProducts,tblOrderDetails, tblOrders;
 
+DROP TABLE IF EXISTS tblOffice
+GO
 create table tblOffice(
 officeCode char(10),
 city varchar(30) not null,
@@ -15,6 +16,9 @@ territory varchar(30),
 CONSTRAINT pk_officeCode primary key (officeCode),
 );
 
+IF EXISTS (select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME='tblEmployees' and TABLE_SCHEMA='dbo')
+drop table dbo.tblEmployees;
+GO
 --one to many in between office and tblEmployees, so officeCode will come as a foreign key
 create table tblEmployees(
 employeeNumber int,
@@ -24,7 +28,7 @@ extension int,
 email varchar(250),
 ofcCode char(10),
 --reports to manager unary relationship, it is the emp Number
-reportsTo int default not null,
+reportsTo int  not null,
 jobTitle varchar(250) not null,
 
 CONSTRAINT pk_employee_empId primary key(employeeNumber),
@@ -32,6 +36,9 @@ CONSTRAINT fk_offices_ofcCode foreign key(ofcCode) references tblOffice(officeCo
 on delete cascade,
 );
 
+if exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME= 'tblCustomers' and TABLE_SCHEMA='dbo')
+drop table tblCustomers;
+GO
 
 create table tblCustomers(
 customerNumber int,
@@ -52,7 +59,9 @@ CONSTRAINT pk_customer_id primary key(customerNumber),
 CONSTRAINT fk_employee_id foreign key(salesRepemployeeNumber) references tblEmployees(employeeNumber) on delete set null,
 );
 
-
+if exists(select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME='tblPayments' and TABLE_SCHEMA='dbo')
+drop table tblPayments;
+Go
 create table tblPayments(
 customerNumber int,
 checkNumber int not null,
@@ -63,14 +72,21 @@ CONSTRAINT fk_customer_id foreign key(customerNumber) references tblCustomers(cu
 CONSTRAINT pk_payments_cusID_checkNo primary key(customerNumber,checkNumber),
 );
 
-create table tblProductLines(
+if exists(select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'tblPayments' and TABLE_SCHEMA='dbo')
+drop table tblPayments;
+go
+create table tblPayments(
 productLine int,
 textDescription varchar(500),
 htmlDescription varchar(1000),
 image varbinary(max),
 
-CONSTRAINT pk_tblProductLines primary key(productLine),
+CONSTRAINT pk_tblPayments primary key(productLine),
 );
+
+if exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME='tblProducts' and TABLE_SCHEMA ='dbo')
+drop table tblProducts;
+go
 
 create table tblProducts(
 productCode varchar(30),
@@ -85,21 +101,27 @@ msrp money not null,
 prodLine int,
 
 CONSTRAINT pk_tblProducts primary key(productCode),
-CONSTRAINT fk_productLine_prdLine foreign key(prodLine)references tblProductLines(productLine),
+CONSTRAINT fk_tblProducts_tblPayments foreign key(prodLine)references tblPayments(productLine),
 
 );
 
+if exists(select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME='tblOrderDetails' and TABLE_SCHEMA='dbo')
+drop table tblOrderDetails;
+GO
 create table tblOrderDetails(
 orderNumber int,
-productCode varchar(30) foreign key references tblProducts(productCode),
+productCode varchar(30),
 qunatityOrdered int not null,
 priceEach money,
 OrderLineNumber int not null,
 
 CONSTRAINT pk_tblOrderDetails primary key(orderNumber),
-CONSTRAINT fk_prdCode
+CONSTRAINT fk_tblOrderDetails_tblProducts foreign key(productCode) references tblProducts(productCode),
 );
 
+if exists( select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME='tblOrders' and TABLE_SCHEMA='dbo')
+drop table tblOrders;
+GO
 create table tblOrders(
 orderNumber int,
 orderDate date not null,
@@ -111,11 +133,9 @@ customerNumber int ,
 
 CONSTRAINT pk_tblOrders primary key(orderNumber),
 );
--- adding a contraint after generating the table
+-- adding a contraint later once the table is already there in the database
 ALter table tblOrders 
 ADD CONSTRAINT fk_tblOrders_tblCustomers foreign key(customerNumber) references tblCustomers(customerNumber);
 
---view all keys
-select * from INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-where constraint_name like 'fk_%'
+
 
