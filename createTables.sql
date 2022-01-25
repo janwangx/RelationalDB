@@ -24,11 +24,11 @@ create table tblEmployees(
 employeeNumber int,
 lastName varchar(30),
 firstName varchar(30) not null,
-extension int,
+extension varchar(30),
 email varchar(250),
 ofcCode char(10),
 --reports to manager unary relationship, it is the emp Number
-reportsTo int  not null,
+reportsTo int  default null,
 jobTitle varchar(250) not null,
 
 CONSTRAINT pk_employee_empId primary key(employeeNumber),
@@ -45,7 +45,7 @@ customerNumber int,
 customerName varchar(250) not null,
 contactLastName varchar(250) ,
 ContactFirstName varchar(250),
-phone char(10) not null,
+phone char(20) not null,
 addressLine1 varchar(250),
 addressLine2 varchar(250),
 city varchar(250),
@@ -64,7 +64,7 @@ drop table tblPayments;
 Go
 create table tblPayments(
 customerNumber int,
-checkNumber int not null,
+checkNumber varchar(20) not null,
 paymentDate date not null,
 amount money check(amount > 0),
 
@@ -72,16 +72,16 @@ CONSTRAINT fk_customer_id foreign key(customerNumber) references tblCustomers(cu
 CONSTRAINT pk_payments_cusID_checkNo primary key(customerNumber,checkNumber),
 );
 
-if exists(select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'tblPayments' and TABLE_SCHEMA='dbo')
-drop table tblPayments;
+if exists(select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME = 'tblProductLines' and TABLE_SCHEMA='dbo')
+drop table tblProductLines;
 go
-create table tblPayments(
-productLine int,
-textDescription varchar(500),
+create table tblProductLines(
+productLine varchar(50),
+textDescription varchar(1000),
 htmlDescription varchar(1000),
 image varbinary(max),
 
-CONSTRAINT pk_tblPayments primary key(productLine),
+CONSTRAINT pk_tblProductLines primary key(productLine),
 );
 
 if exists (select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME='tblProducts' and TABLE_SCHEMA ='dbo')
@@ -91,17 +91,18 @@ go
 create table tblProducts(
 productCode varchar(30),
 productName varchar(50) not null,
-productScale int,
+prodLine varchar(50),
+productScale varchar(50),
 productVandor varchar(100),
 productDescription varchar(500),
 quantityInStock int not null,
 buyPrice money not null check(buyPrice > 0),
 --Manufacturer's Suggested Retail Price
 msrp money not null,
-prodLine int,
+
 
 CONSTRAINT pk_tblProducts primary key(productCode),
-CONSTRAINT fk_tblProducts_tblPayments foreign key(prodLine)references tblPayments(productLine),
+CONSTRAINT fk_tblProducts_tblPayments foreign key(prodLine)references tblProductLines(productLine),
 
 );
 
@@ -115,8 +116,9 @@ qunatityOrdered int not null,
 priceEach money,
 OrderLineNumber int not null,
 
-CONSTRAINT pk_tblOrderDetails primary key(orderNumber),
+CONSTRAINT pk_tblOrderDetails primary key(orderNumber,productCode),
 CONSTRAINT fk_tblOrderDetails_tblProducts foreign key(productCode) references tblProducts(productCode),
+CONSTRAINT fk_tblOrderDetails_tblOrders foreign key(orderNumber) references tblOrders(orderNumber),
 );
 
 if exists( select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME='tblOrders' and TABLE_SCHEMA='dbo')
@@ -126,7 +128,7 @@ create table tblOrders(
 orderNumber int,
 orderDate date not null,
 requiredDate date not null,
-shippedDate date,
+shippedDate date default null,
 status varchar(50),
 comments text,
 customerNumber int ,
@@ -136,6 +138,5 @@ CONSTRAINT pk_tblOrders primary key(orderNumber),
 -- adding a contraint later once the table is already there in the database
 ALter table tblOrders 
 ADD CONSTRAINT fk_tblOrders_tblCustomers foreign key(customerNumber) references tblCustomers(customerNumber);
-
 
 

@@ -4,6 +4,7 @@ USE  classiscModels;
 select * from INFORMATION_SCHEMA.KEY_COLUMN_USAGE where CONSTRAINT_NAME like 'fk_%'
 
 --drop the foreign keys on tables
+Alter table dbo.tblOrderDetails Drop CONSTRAINT fk_tblOrderDetails_tblOrders
 Alter table dbo.tblOrderDetails DROP CONSTRAINT fk_tblOrderDetails_tblProducts
 Alter table dbo.tblCustomers DROP CONSTRAINT fk_employee_id
 Alter table dbo.tblPayments drop fk_customer_id
